@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Статистика{% endblock %}
+{% block content %}
+<h2 class="mb-3">Статистика по статусам</h2>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <canvas id="statusChart" height="160"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="mb-3">Сводка</h5>
+        <ul class="list-group">
+          {% for label, value in pairs %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>{{ label|capitalize }}</span>
+            <span class="badge text-bg-secondary">{{ value }}</span>
+          </li>
+          {% else %}
+          <li class="list-group-item text-muted">Пока данных нет</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+<script>
+  const chartLabels = {{ labels|tojson }};
+  const chartValues = {{ values|tojson }};
+  const ctx = document.getElementById('statusChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: chartLabels,
+      datasets: [{ data: chartValues }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+</script>
+{% endblock %}

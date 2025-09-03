@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Заказ №{{ order.id }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Заказ №{{ order.id }}</h2>
+  <a class="btn btn-outline-secondary" href="{{ url_for('orders.index') }}">← Назад</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <p class="mb-1"><strong>Клиент:</strong> {{ order.customer_name }}</p>
+        <p class="mb-1"><strong>Контакт:</strong> {{ order.contact }}</p>
+        <p class="mb-1"><strong>Статус:</strong> <span class="badge bg-info">{{ order.status }}</span></p>
+        <p class="mb-1"><strong>Автор:</strong> {{ order.user.username if order.user else '-' }}</p>
+        <p class="mb-0"><strong>Сумма:</strong> {{ "%.0f"|format(order.total) }} сум</p>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+      <div class="card-body">
+        <h5>Изменить статус</h5>
+        <div class="d-flex flex-wrap gap-2">
+          {% for s in transitions %}
+          <form method="post" action="{{ url_for('orders.update_status', order_id=order.id, status=s) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-primary">{{ s|capitalize }}</button>
+          </form>
+          {% endfor %}
+          {% if order.status not in ['отменен', 'выполнен'] %}
+          <form method="post" action="{{ url_for('orders.cancel_order', order_id=order.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-danger">Отменить</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5>Позиции</h5>
+        <ul class="list-group">
+          {% for it in items %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold">{{ it.product_name }} × {{ it.quantity }}</div>
+              {% if it.notes %}
+                <div class="text-muted small">Пожелания: {{ it.notes }}</div>
+              {% endif %}
+            </div>
+            <div>{{ "%.0f"|format(it.price * it.quantity) }} сум</div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

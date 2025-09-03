@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Создать заказ{% endblock %}
+{% block content %}
+<h2 class="mb-3">Новый заказ</h2>
+
+<form method="POST" class="card p-3 shadow-sm" id="order-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label class="form-label">Имя клиента</label>
+      <input type="text" class="form-control" name="name" required>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Контакт</label>
+      <input type="text" class="form-control" name="contact" required>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Место печати (демо)</label>
+      <select class="form-select" disabled>
+        <option selected>Кухня</option>
+        <option>Бар</option>
+        <option>Касса</option>
+      </select>
+      <div class="form-text">Поле-муляж (ТЗ JOWI).</div>
+    </div>
+  </div>
+
+  <hr>
+  <div class="d-flex align-items-center justify-content-between">
+    <h5 class="mb-0">Товары</h5>
+    <div class="fw-semibold">Итого: <span id="order-total">0</span> сум</div>
+  </div>
+
+  <div class="row g-3 mt-1">
+    {% for p in products %}
+    <div class="col-md-6">
+      <div class="border rounded p-3 h-100 product-card" data-price="{{ '%.0f'|format(p.price) }}">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="fw-semibold">{{ p.name }}</div>
+            <div class="text-muted small">
+              {{ "%.0f"|format(p.price) }} сум{% if p.category %} · {{ p.category }}{% endif %}
+            </div>
+          </div>
+          <div class="btn-group" role="group" aria-label="qty">
+            <button class="btn btn-outline-secondary btn-sm btn-qty" data-target="qty_{{ p.id }}" data-dir="minus" type="button">−</button>
+            <input type="number"
+                   class="form-control form-control-sm text-center"
+                   name="qty_{{ p.id }}"
+                   id="qty_{{ p.id }}"
+                   value="0" min="0" max="999" style="width:72px">
+            <button class="btn btn-outline-secondary btn-sm btn-qty" data-target="qty_{{ p.id }}" data-dir="plus" type="button">+</button>
+          </div>
+        </div>
+
+        <div class="mt-2">
+          <input type="text" name="notes_{{ p.id }}" class="form-control form-control-sm" placeholder="Пожелания (опционально)">
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="mt-3 d-flex justify-content-end gap-2">
+    <button type="reset" class="btn btn-outline-secondary">Сбросить</button>
+    <button type="submit" class="btn btn-success">Создать заказ</button>
+  </div>
+</form>
+
+<script>
+  document.querySelectorAll('.btn-qty').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.target;
+      const dir = btn.dataset.dir;
+      const input = document.getElementById(id);
+      if (!input) return;
+
+      let v = parseInt(input.value || '0', 10);
+      if (isNaN(v)) v = 0;
+      if (dir === 'minus') v = Math.max(0, v - 1);
+      if (dir === 'plus')  v = Math.min(999, v + 1);
+      input.value = v;
+      recomputeTotal();
+    });
+  });
+
+  document.querySelectorAll('input[type="number"][name^="qty_"]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      let v = parseInt(inp.value || '0', 10);
+      if (isNaN(v) || v < 0) v = 0;
+      if (v > 999) v = 999;
+      inp.value = v;
+      recomputeTotal();
+    });
+  });
+
+  function recomputeTotal() {
+    let total = 0;
+    document.querySelectorAll('.product-card').forEach(card => {
+      const price = parseFloat(card.dataset.price || '0');
+      const qtyInput = card.querySelector('input[type="number"][name^="qty_"]');
+      const qty = parseInt(qtyInput?.value || '0', 10) || 0;
+      total += price * qty;
+    });
+    document.getElementById('order-total').textContent = Math.round(total).toString();
+  }
+  recomputeTotal();
+</script>
+{% endblock %}

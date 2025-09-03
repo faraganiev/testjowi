@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Список заказов{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h2 class="mb-0">Заказы</h2>
+  <form class="d-flex gap-2" method="get" action="{{ url_for('orders.index') }}">
+    <select name="status" class="form-select">
+      <option value="">Все статусы</option>
+      {% for s in statuses %}
+        <option value="{{ s }}" {% if status==s %}selected{% endif %}>{{ s|capitalize }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-outline-primary">Фильтр</button>
+  </form>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Клиент</th>
+          <th>Контакт</th>
+          <th>Сумма</th>
+          <th>Статус</th>
+          <th>Создан</th>
+          <th>Автор</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="orders-body">
+        {% include 'partials/orders_table.html' %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
